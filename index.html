@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CalorieTrack</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#F7F4EF; --surface:#FFFFFF; --surface2:#F0EDE7;
+  --accent:#D85A30; --accent-light:#FAECE7; --accent-dark:#993C1D;
+  --green:#1D9E75; --green-light:#E1F5EE;
+  --text:#2C2C2A; --text2:#5F5E5A; --text3:#888780;
+  --border:rgba(44,44,42,0.12); --border2:rgba(44,44,42,0.22);
+  --radius:14px; --shadow:0 2px 12px rgba(44,44,42,0.08);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
+
+header{background:var(--text);color:#F7F4EF;padding:1.1rem 1.5rem;display:flex;align-items:center;justify-content:space-between;}
+.logo{font-family:'DM Serif Display',serif;font-size:1.5rem;letter-spacing:-0.5px;}
+.logo span{color:var(--accent);}
+.header-sub{font-size:0.75rem;color:#B4B2A9;font-weight:300;margin-top:2px;}
+.date-badge{font-size:0.75rem;background:rgba(247,244,239,0.1);border:1px solid rgba(247,244,239,0.2);border-radius:20px;padding:5px 12px;color:#D3D1C7;}
+
+.container{max-width:1100px;margin:0 auto;padding:1.5rem 1.25rem;}
+.grid{display:grid;grid-template-columns:1fr 340px;gap:1.25rem;align-items:start;}
+
+.card{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow);overflow:hidden;margin-bottom:1.25rem;}
+.card:last-child{margin-bottom:0;}
+.card-header{padding:1rem 1.25rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;}
+.card-header h2{font-family:'DM Serif Display',serif;font-size:1.1rem;font-weight:400;}
+.icon{width:30px;height:30px;background:var(--accent-light);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;}
+.card-body{padding:1.1rem 1.25rem;}
+
+.tabs{display:flex;gap:4px;margin-bottom:1.1rem;background:var(--surface2);border-radius:9px;padding:4px;}
+.tab-btn{flex:1;padding:7px 6px;border:none;background:transparent;border-radius:6px;font-family:'DM Sans',sans-serif;font-size:0.8rem;font-weight:500;color:var(--text3);cursor:pointer;transition:all .15s;white-space:nowrap;}
+.tab-btn.active{background:var(--surface);color:var(--text);box-shadow:0 1px 4px rgba(44,44,42,0.12);}
+
+.search-wrap{position:relative;margin-bottom:.9rem;}
+.search-wrap input{width:100%;padding:9px 14px 9px 38px;border:1.5px solid var(--border2);border-radius:9px;font-family:'DM Sans',sans-serif;font-size:0.88rem;background:var(--bg);color:var(--text);outline:none;transition:border-color .15s;}
+.search-wrap input:focus{border-color:var(--accent);}
+.search-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:15px;pointer-events:none;}
+.search-wrap input::placeholder{color:var(--text3);}
+
+.food-categories{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:.9rem;}
+.cat-btn{padding:4px 11px;border:1px solid var(--border2);border-radius:20px;background:transparent;font-family:'DM Sans',sans-serif;font-size:0.75rem;color:var(--text2);cursor:pointer;transition:all .15s;white-space:nowrap;}
+.cat-btn.active{background:var(--accent);border-color:var(--accent);color:#fff;}
+
+.food-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;max-height:340px;overflow-y:auto;padding-right:3px;}
+.food-grid::-webkit-scrollbar{width:3px;}
+.food-grid::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px;}
+
+.food-item{background:var(--bg);border:1px solid var(--border);border-radius:9px;padding:9px 11px;cursor:pointer;transition:all .15s;display:flex;flex-direction:column;gap:3px;}
+.food-item:hover{border-color:var(--accent);background:var(--accent-light);}
+.food-item-name{font-size:0.8rem;font-weight:500;color:var(--text);line-height:1.3;}
+.food-item-cal{font-size:0.72rem;color:var(--accent);font-weight:600;}
+.food-item-macro{font-size:0.67rem;color:var(--text3);}
+.food-emoji{font-size:1.2rem;margin-bottom:1px;}
+
+.manual-form{display:flex;flex-direction:column;gap:10px;}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
+.form-group{display:flex;flex-direction:column;gap:4px;}
+.form-group label{font-size:0.75rem;font-weight:500;color:var(--text2);}
+.form-group input,.form-group select{padding:8px 11px;border:1.5px solid var(--border2);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:0.85rem;background:var(--bg);color:var(--text);outline:none;transition:border-color .15s;}
+.form-group input:focus,.form-group select:focus{border-color:var(--accent);}
+.btn-add{padding:10px;background:var(--accent);color:#fff;border:none;border-radius:9px;font-family:'DM Sans',sans-serif;font-size:0.88rem;font-weight:600;cursor:pointer;transition:all .15s;}
+.btn-add:hover{background:var(--accent-dark);}
+
+/* MODAL - in-flow overlay, no position:fixed */
+.modal-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(44,44,42,0.5);z-index:50;align-items:flex-start;justify-content:center;padding-top:80px;}
+.modal-overlay.open{display:flex;}
+.modal-box{background:var(--surface);border-radius:var(--radius);padding:1.4rem;width:290px;box-shadow:0 8px 40px rgba(44,44,42,0.2);}
+.modal-box h3{font-family:'DM Serif Display',serif;font-size:1.05rem;font-weight:400;margin-bottom:3px;}
+.modal-box p{font-size:0.78rem;color:var(--text3);margin-bottom:.9rem;}
+.qty-row{display:flex;gap:7px;margin-bottom:.9rem;}
+.qty-row input{flex:1;padding:9px 11px;border:1.5px solid var(--border2);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:0.95rem;background:var(--bg);color:var(--text);outline:none;}
+.qty-row input:focus{border-color:var(--accent);}
+.qty-unit{padding:9px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;font-size:0.82rem;color:var(--text2);}
+.qty-preview{background:var(--accent-light);border-radius:8px;padding:9px 12px;margin-bottom:.9rem;display:flex;justify-content:space-between;align-items:center;}
+.qty-preview span{font-size:0.78rem;color:var(--text2);}
+.qty-preview strong{font-size:1.05rem;color:var(--accent);font-weight:600;}
+.modal-meal-sel{width:100%;padding:8px 10px;border:1.5px solid var(--border2);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:0.83rem;background:var(--bg);color:var(--text);outline:none;margin-bottom:.9rem;}
+.modal-btns{display:grid;grid-template-columns:1fr 1fr;gap:7px;}
+.btn-cancel{padding:9px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:0.85rem;cursor:pointer;color:var(--text2);}
+.btn-confirm{padding:9px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:0.85rem;font-weight:600;cursor:pointer;}
+.btn-confirm:hover{background:var(--accent-dark);}
+
+.right-col{display:flex;flex-direction:column;}
+
+.goal-inputs{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:9px;}
+.gi{display:flex;flex-direction:column;gap:3px;}
+.gi label{font-size:0.72rem;font-weight:500;color:var(--text3);}
+.gi input,.gi select{padding:7px 9px;border:1.5px solid var(--border2);border-radius:7px;font-family:'DM Sans',sans-serif;font-size:0.82rem;background:var(--bg);color:var(--text);outline:none;}
+.gi input:focus,.gi select:focus{border-color:var(--accent);}
+.goal-full{margin-bottom:9px;}
+.goal-full label{font-size:0.72rem;font-weight:500;color:var(--text3);display:block;margin-bottom:3px;}
+.goal-full select{width:100%;padding:7px 9px;border:1.5px solid var(--border2);border-radius:7px;font-family:'DM Sans',sans-serif;font-size:0.82rem;background:var(--bg);color:var(--text);outline:none;}
+.btn-calc{width:100%;padding:9px;background:var(--text);color:var(--bg);border:none;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:0.83rem;font-weight:600;cursor:pointer;transition:all .15s;}
+.btn-calc:hover{background:var(--accent);}
+.bmr-result{display:none;background:var(--accent-light);border-radius:8px;padding:9px 12px;margin-top:8px;border:1px solid #F5C4B3;}
+.bmr-result.show{display:block;}
+.bmr-main{font-family:'DM Serif Display',serif;font-size:1.4rem;color:var(--accent);}
+.bmr-sub{font-size:0.72rem;color:var(--text2);margin-top:1px;}
+
+.ring-wrap{display:flex;align-items:center;gap:16px;margin-bottom:1rem;}
+.ring-cal-num{font-family:'DM Serif Display',serif;font-size:1.9rem;line-height:1;color:var(--text);}
+.ring-cal-label{font-size:0.72rem;color:var(--text3);margin-bottom:6px;}
+.ring-remaining{font-size:0.78rem;font-weight:500;}
+.ring-remaining.over{color:var(--accent);}
+.ring-remaining.good{color:var(--green);}
+.macros-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;}
+.macro-card{background:var(--bg);border-radius:9px;padding:9px;text-align:center;border:1px solid var(--border);}
+.macro-label{font-size:0.67rem;color:var(--text3);margin-bottom:3px;}
+.macro-val{font-size:0.95rem;font-weight:600;color:var(--text);}
+.macro-unit{font-size:0.62rem;color:var(--text3);}
+.macro-bar{height:3px;border-radius:3px;margin-top:5px;background:var(--border);overflow:hidden;}
+.macro-fill{height:100%;border-radius:3px;transition:width .4s;}
+.pf{background:#1D9E75;}.cf{background:var(--accent);}.ff{background:#BA7517;}
+
+.log-list{display:flex;flex-direction:column;gap:5px;max-height:300px;overflow-y:auto;padding-right:2px;}
+.log-list::-webkit-scrollbar{width:3px;}
+.log-list::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px;}
+.log-item{display:flex;align-items:center;gap:9px;background:var(--bg);border:1px solid var(--border);border-radius:9px;padding:8px 11px;animation:slideIn .2s ease;}
+.log-emoji{font-size:1.1rem;flex-shrink:0;}
+.log-info{flex:1;min-width:0;}
+.log-name{font-size:0.8rem;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.log-detail{font-size:0.68rem;color:var(--text3);}
+.log-cal{font-size:0.85rem;font-weight:600;color:var(--accent);flex-shrink:0;}
+.log-del{background:none;border:none;cursor:pointer;color:var(--text3);font-size:14px;padding:2px 5px;border-radius:4px;transition:all .15s;flex-shrink:0;}
+.log-del:hover{background:#FCEBEB;color:#E24B4A;}
+.log-empty{text-align:center;padding:1.8rem;color:var(--text3);font-size:0.82rem;line-height:1.6;}
+.meal-hdr{font-size:0.68rem;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.7px;padding:3px 0 5px;display:flex;align-items:center;gap:5px;}
+.meal-hdr::after{content:'';flex:1;height:1px;background:var(--border);}
+
+.water-track{display:flex;gap:4px;margin:9px 0;}
+.wc{flex:1;height:30px;border-radius:5px;border:1.5px solid #85B7EB;background:transparent;cursor:pointer;transition:all .15s;}
+.wc.filled{background:#85B7EB;}
+.wc:hover{border-color:#378ADD;}
+.water-label{font-size:0.72rem;color:var(--text3);}
+
+.tip-box{background:var(--green-light);border-radius:10px;padding:11px 13px;border:1px solid #9FE1CB;}
+.tip-box p{font-size:0.75rem;color:#0F6E56;line-height:1.5;}
+.tip-box strong{color:#085041;}
+
+.progress-ring-bg{fill:none;stroke:var(--surface2);stroke-width:8;}
+.progress-ring-fill{fill:none;stroke-width:8;stroke-linecap:round;transform:rotate(-90deg);transform-origin:50% 50%;transition:stroke-dashoffset .6s cubic-bezier(.4,0,.2,1);}
+
+@keyframes slideIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:780px){.grid{grid-template-columns:1fr;}.right-col{order:-1;}}
+
+body.modal-open{overflow:hidden;}
+
+/* wrapper for modal positioning */
+.app-wrap{position:relative;}
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="logo">Calorie<span>Track</span></div>
+    <div class="header-sub">Calculatorul tău de nutriție</div>
+  </div>
+  <div class="date-badge" id="dateDisplay"></div>
+</header>
+
+<div class="app-wrap">
+  <!-- MODAL inside app-wrap for proper overlay -->
+  <div class="modal-overlay" id="qtyModal">
+    <div class="modal-box">
+      <h3 id="modalFoodName">Piept de pui</h3>
+      <p id="modalFoodCal">165 kcal / 100g</p>
+      <div class="qty-row">
+        <input type="number" id="qtyInput" value="100" min="1" oninput="updateQtyPreview()">
+        <div class="qty-unit">g / ml</div>
+      </div>
+      <div class="qty-preview">
+        <span>Calorii pentru această porție:</span>
+        <strong id="qtyCalPreview">165 kcal</strong>
+      </div>
+      <label style="font-size:0.72rem;font-weight:500;color:var(--text3);display:block;margin-bottom:4px;">Masă</label>
+      <select class="modal-meal-sel" id="modalMeal">
+        <option>Mic dejun</option><option>Prânz</option><option>Cină</option><option>Gustare</option>
+      </select>
+      <div class="modal-btns">
+        <button class="btn-cancel" onclick="closeModal()">Anulează</button>
+        <button class="btn-confirm" onclick="confirmAdd()">Adaugă ✓</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="grid">
+
+      <!-- LEFT -->
+      <div>
+        <div class="card">
+          <div class="card-header">
+            <div class="icon">🍽️</div>
+            <h2>Adaugă alimente</h2>
+          </div>
+          <div class="card-body">
+            <div class="tabs">
+              <button class="tab-btn active" onclick="switchTab('search',this)">🔍 Caută</button>
+              <button class="tab-btn" onclick="switchTab('manual',this)">✏️ Manual</button>
+              <button class="tab-btn" onclick="switchTab('recent',this)">🕐 Recente</button>
+              <button class="tab-btn" onclick="switchTab('newfood',this)">➕ Nou</button>
+            </div>
+
+            <div id="tab-search">
+              <div class="search-wrap">
+                <span class="search-icon">🔍</span>
+                <input type="text" id="searchInput" placeholder="Caută aliment (ex: pui, orez, măr...)" oninput="filterFoods()">
+              </div>
+              <div class="food-categories" id="catBtns"></div>
+              <div class="food-grid" id="foodGrid"></div>
+            </div>
+
+            <div id="tab-manual" style="display:none">
+              <div class="manual-form">
+                <div class="form-group"><label>Nume aliment</label><input type="text" id="m_name" placeholder="Ex: Salată cu ton"></div>
+                <div class="form-row">
+                  <div class="form-group"><label>Calorii (kcal)</label><input type="number" id="m_cal" placeholder="0" min="0"></div>
+                  <div class="form-group"><label>Cantitate (g/ml)</label><input type="number" id="m_qty" placeholder="100" min="1"></div>
+                </div>
+                <div class="form-row">
+                  <div class="form-group"><label>Proteine (g)</label><input type="number" id="m_prot" placeholder="0" min="0"></div>
+                  <div class="form-group"><label>Carbohidrați (g)</label><input type="number" id="m_carb" placeholder="0" min="0"></div>
+                </div>
+                <div class="form-row">
+                  <div class="form-group"><label>Grăsimi (g)</label><input type="number" id="m_fat" placeholder="0" min="0"></div>
+                  <div class="form-group"><label>Masă</label>
+                    <select id="m_meal"><option>Mic dejun</option><option>Prânz</option><option>Cină</option><option>Gustare</option></select>
+                  </div>
+                </div>
+                <button class="btn-add" onclick="addManual()">+ Adaugă în jurnal</button>
+              </div>
+            </div>
+
+            <div id="tab-recent" style="display:none">
+              <div id="recentList"></div>
+            </div>
+
+            <div id="tab-newfood" style="display:none">
+              <div class="manual-form">
+                <div class="form-row">
+                  <div class="form-group" style="flex:0 0 56px">
+                    <label>Emoji</label>
+                    <input type="text" id="nf_emoji" placeholder="🥗" maxlength="2" style="text-align:center;font-size:1.3rem;padding:5px;">
+                  </div>
+                  <div class="form-group" style="flex:1">
+                    <label>Nume aliment *</label>
+                    <input type="text" id="nf_name" placeholder="Ex: Supă de linte">
+                  </div>
+                </div>
+                <div class="form-row">
+                  <div class="form-group"><label>Calorii /100g *</label><input type="number" id="nf_cal" placeholder="0" min="0"></div>
+                  <div class="form-group"><label>Categorie</label>
+                    <select id="nf_cat">
+                      <option>Carne</option><option>Proteine</option><option>Cereale</option>
+                      <option>Legume</option><option>Fructe</option><option>Lactate</option>
+                      <option>Snacks</option><option>Altele</option><option>Custom</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="form-row">
+                  <div class="form-group"><label>Proteine /100g</label><input type="number" id="nf_prot" placeholder="0" min="0"></div>
+                  <div class="form-group"><label>Carbohidrați /100g</label><input type="number" id="nf_carb" placeholder="0" min="0"></div>
+                </div>
+                <div class="form-row">
+                  <div class="form-group"><label>Grăsimi /100g</label><input type="number" id="nf_fat" placeholder="0" min="0"></div>
+                  <div class="form-group" style="justify-content:flex-end;padding-top:18px">
+                    <button class="btn-add" onclick="saveCustomFood()" style="width:100%">💾 Salvează aliment</button>
+                  </div>
+                </div>
+              </div>
+              <div id="customFoodList" style="margin-top:12px"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="icon">📋</div>
+            <h2>Jurnalul de azi</h2>
+            <button onclick="clearLog()" style="margin-left:auto;background:none;border:none;cursor:pointer;font-size:0.75rem;color:var(--text3);">Șterge tot</button>
+          </div>
+          <div class="card-body"><div id="logContainer"></div></div>
+        </div>
+      </div>
+
+      <!-- RIGHT -->
+      <div class="right-col">
+        <div class="card">
+          <div class="card-header"><div class="icon">🎯</div><h2>Obiectiv caloric</h2></div>
+          <div class="card-body">
+            <div class="goal-inputs">
+              <div class="gi"><label>Vârstă</label><input type="number" id="g_age" placeholder="25" min="10" max="100"></div>
+              <div class="gi"><label>Sex</label><select id="g_sex"><option value="m">Masculin</option><option value="f">Feminin</option></select></div>
+              <div class="gi"><label>Greutate (kg)</label><input type="number" id="g_weight" placeholder="70" min="30"></div>
+              <div class="gi"><label>Înălțime (cm)</label><input type="number" id="g_height" placeholder="175" min="100"></div>
+            </div>
+            <div class="goal-full"><label>Nivel activitate</label>
+              <select id="g_activity">
+                <option value="1.2">Sedentar (fără sport)</option>
+                <option value="1.375">Ușor activ (1-3 zile/săpt)</option>
+                <option value="1.55" selected>Moderat activ (3-5 zile/săpt)</option>
+                <option value="1.725">Foarte activ (6-7 zile/săpt)</option>
+                <option value="1.9">Extrem de activ (2x/zi)</option>
+              </select>
+            </div>
+            <div class="goal-full"><label>Obiectiv</label>
+              <select id="g_goal">
+                <option value="-500">Slăbire (-500 kcal)</option>
+                <option value="-250">Slăbire ușoară (-250 kcal)</option>
+                <option value="0" selected>Menținere greutate</option>
+                <option value="250">Creștere masă (+250 kcal)</option>
+                <option value="500">Creștere masă rapidă (+500 kcal)</option>
+              </select>
+            </div>
+            <button class="btn-calc" onclick="calcGoal()">Calculează obiectivul meu →</button>
+            <div class="bmr-result" id="bmrResult">
+              <div class="bmr-main" id="bmrVal">2000 kcal</div>
+              <div class="bmr-sub" id="bmrSub">Obiectivul tău zilnic</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><div class="icon">📊</div><h2>Sumar zilnic</h2></div>
+          <div class="card-body">
+            <div class="ring-wrap">
+              <svg width="84" height="84" viewBox="0 0 84 84" style="flex-shrink:0">
+                <circle class="progress-ring-bg" cx="42" cy="42" r="34"/>
+                <circle class="progress-ring-fill" id="ringFill" cx="42" cy="42" r="34"
+                  stroke="#D85A30" stroke-dasharray="213.6" stroke-dashoffset="213.6"/>
+              </svg>
+              <div>
+                <div class="ring-cal-num" id="totalCal">0</div>
+                <div class="ring-cal-label">kcal consumate</div>
+                <div class="ring-remaining good" id="remainingCal">— din <span id="goalDisplay">2000</span> kcal</div>
+              </div>
+            </div>
+            <div class="macros-row">
+              <div class="macro-card"><div class="macro-label">Proteine</div><div class="macro-val" id="totalProt">0</div><div class="macro-unit">g</div><div class="macro-bar"><div class="macro-fill pf" id="protBar" style="width:0%"></div></div></div>
+              <div class="macro-card"><div class="macro-label">Carbo</div><div class="macro-val" id="totalCarb">0</div><div class="macro-unit">g</div><div class="macro-bar"><div class="macro-fill cf" id="carbBar" style="width:0%"></div></div></div>
+              <div class="macro-card"><div class="macro-label">Grăsimi</div><div class="macro-val" id="totalFat">0</div><div class="macro-unit">g</div><div class="macro-bar"><div class="macro-fill ff" id="fatBar" style="width:0%"></div></div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><div class="icon">💧</div><h2>Hidratare</h2></div>
+          <div class="card-body">
+            <div class="water-track" id="waterTrack"></div>
+            <div class="water-label" id="waterLabel">0 / 8 pahare consumate</div>
+          </div>
+        </div>
+
+        <div class="tip-box" id="tipBox">
+          <p>💡 <strong>Sfatul zilei:</strong> Proteinele te ajută să te simți sătul mai mult timp. Încearcă să consumi proteine la fiecare masă!</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const FOODS = [
+  {id:1,name:'Piept de pui (copt)',emoji:'🍗',cal:165,prot:31,carb:0,fat:3.6,cat:'Carne'},
+  {id:2,name:'Ouă fierte',emoji:'🥚',cal:155,prot:13,carb:1.1,fat:11,cat:'Proteine'},
+  {id:3,name:'Ton în apă',emoji:'🐟',cal:116,prot:26,carb:0,fat:1,cat:'Proteine'},
+  {id:4,name:'Somon (copt)',emoji:'🐠',cal:208,prot:20,carb:0,fat:13,cat:'Carne'},
+  {id:5,name:'Carne de vită (slabă)',emoji:'🥩',cal:250,prot:26,carb:0,fat:15,cat:'Carne'},
+  {id:6,name:'Iaurt grecesc 0%',emoji:'🥛',cal:59,prot:10,carb:3.6,fat:0.4,cat:'Lactate'},
+  {id:7,name:'Brânză cottage',emoji:'🧀',cal:98,prot:11,carb:3.4,fat:4.3,cat:'Lactate'},
+  {id:8,name:'Orez fiert alb',emoji:'🍚',cal:130,prot:2.7,carb:28,fat:0.3,cat:'Cereale'},
+  {id:9,name:'Paste fierte',emoji:'🍝',cal:158,prot:5.8,carb:31,fat:0.9,cat:'Cereale'},
+  {id:10,name:'Pâine albă',emoji:'🍞',cal:265,prot:9,carb:49,fat:3.2,cat:'Cereale'},
+  {id:11,name:'Pâine integrală',emoji:'🫓',cal:247,prot:13,carb:41,fat:3.4,cat:'Cereale'},
+  {id:12,name:'Fulgi de ovăz',emoji:'🌾',cal:389,prot:17,carb:66,fat:7,cat:'Cereale'},
+  {id:13,name:'Cartofi fierți',emoji:'🥔',cal:87,prot:1.9,carb:20,fat:0.1,cat:'Legume'},
+  {id:14,name:'Broccoli',emoji:'🥦',cal:34,prot:2.8,carb:7,fat:0.4,cat:'Legume'},
+  {id:15,name:'Morcovi',emoji:'🥕',cal:41,prot:0.9,carb:10,fat:0.2,cat:'Legume'},
+  {id:16,name:'Roșii',emoji:'🍅',cal:18,prot:0.9,carb:3.9,fat:0.2,cat:'Legume'},
+  {id:17,name:'Spanac',emoji:'🥬',cal:23,prot:2.9,carb:3.6,fat:0.4,cat:'Legume'},
+  {id:18,name:'Fasole neagră',emoji:'🫘',cal:132,prot:8.9,carb:24,fat:0.5,cat:'Legume'},
+  {id:19,name:'Măr',emoji:'🍎',cal:52,prot:0.3,carb:14,fat:0.2,cat:'Fructe'},
+  {id:20,name:'Banană',emoji:'🍌',cal:89,prot:1.1,carb:23,fat:0.3,cat:'Fructe'},
+  {id:21,name:'Portocală',emoji:'🍊',cal:47,prot:0.9,carb:12,fat:0.1,cat:'Fructe'},
+  {id:22,name:'Căpșuni',emoji:'🍓',cal:32,prot:0.7,carb:8,fat:0.3,cat:'Fructe'},
+  {id:23,name:'Avocado',emoji:'🥑',cal:160,prot:2,carb:9,fat:15,cat:'Fructe'},
+  {id:24,name:'Lapte 1.5%',emoji:'🥛',cal:46,prot:3.6,carb:4.8,fat:1.5,cat:'Lactate'},
+  {id:25,name:'Brânză cheddar',emoji:'🧀',cal:402,prot:25,carb:1.3,fat:33,cat:'Lactate'},
+  {id:26,name:'Migdale',emoji:'🌰',cal:579,prot:21,carb:22,fat:50,cat:'Snacks'},
+  {id:27,name:'Ciocolată neagră 70%',emoji:'🍫',cal:599,prot:8,carb:46,fat:43,cat:'Snacks'},
+  {id:28,name:'Linte fiartă',emoji:'🍲',cal:116,prot:9,carb:20,fat:0.4,cat:'Legume'},
+  {id:29,name:'Ulei de măsline',emoji:'🫙',cal:884,prot:0,carb:0,fat:100,cat:'Altele'},
+  {id:30,name:'Miere',emoji:'🍯',cal:304,prot:0.3,carb:82,fat:0,cat:'Altele'},
+];
+
+const TIPS = [
+  '💡 <strong>Sfatul zilei:</strong> Proteinele te ajută să te simți sătul mai mult timp. Încearcă să consumi proteine la fiecare masă!',
+  '💡 <strong>Sfatul zilei:</strong> Bea un pahar de apă înainte de fiecare masă — ajută digestia și controlul porțiilor.',
+  '💡 <strong>Sfatul zilei:</strong> Legumele verzi sunt sărace în calorii și bogate în fibre. Umple jumătate din farfurie cu ele!',
+  '💡 <strong>Sfatul zilei:</strong> Mănâncă încet! Creierul are nevoie de ~20 minute să primească semnalul de sațietate.',
+  '💡 <strong>Sfatul zilei:</strong> Grăsimile sănătoase (avocado, nuci, pește) sunt esențiale — nu le evita complet!',
+];
+
+// In-memory state (no localStorage - works everywhere)
+let dailyLog = [];
+let customFoods = [];
+let dailyGoal = 2000;
+let waterCount = 0;
+let currentFood = null;
+let activeCategory = 'Toate';
+
+// Init
+document.getElementById('dateDisplay').textContent = new Date().toLocaleDateString('ro-RO',{weekday:'long',day:'numeric',month:'long'});
+document.getElementById('tipBox').innerHTML = '<p>'+TIPS[Math.floor(Math.random()*TIPS.length)]+'</p>';
+
+buildCategories();
+renderFoods();
+renderLog();
+renderWater();
+updateSummary();
+
+function buildCategories() {
+  const cats = ['Toate',...new Set(FOODS.map(f=>f.cat))];
+  document.getElementById('catBtns').innerHTML = cats.map(c=>
+    `<button class="cat-btn${c==='Toate'?' active':''}" onclick="selectCat('${c}',this)">${c}</button>`
+  ).join('');
+}
+
+function selectCat(cat, btn) {
+  activeCategory = cat;
+  document.querySelectorAll('.cat-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  filterFoods();
+}
+
+function filterFoods() {
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  const list = FOODS.filter(f=>{
+    const matchCat = activeCategory==='Toate' || f.cat===activeCategory;
+    const matchQ = !q || f.name.toLowerCase().includes(q);
+    return matchCat && matchQ;
+  });
+  renderFoods(list);
+}
+
+function renderFoods(list) {
+  if(list===undefined) list=FOODS;
+  const grid = document.getElementById('foodGrid');
+  if(!list.length){grid.innerHTML='<div style="grid-column:span 2;text-align:center;padding:2rem;color:var(--text3);font-size:0.82rem;">Niciun aliment găsit</div>';return;}
+  grid.innerHTML = list.map(f=>`
+    <div class="food-item" onclick="openModal(${f.id})">
+      <div class="food-emoji">${f.emoji}</div>
+      <div class="food-item-name">${f.name}</div>
+      <div class="food-item-cal">${f.cal} kcal/100g</div>
+      <div class="food-item-macro">P:${f.prot}g C:${f.carb}g G:${f.fat}g</div>
+    </div>
+  `).join('');
+}
+
+function saveCustomFood() {
+  const name = document.getElementById('nf_name').value.trim();
+  const cal = parseFloat(document.getElementById('nf_cal').value);
+  if (!name || !cal) { alert('Completează cel puțin numele și caloriile!'); return; }
+  const emoji = document.getElementById('nf_emoji').value.trim() || '🍽️';
+  const prot = parseFloat(document.getElementById('nf_prot').value) || 0;
+  const carb = parseFloat(document.getElementById('nf_carb').value) || 0;
+  const fat = parseFloat(document.getElementById('nf_fat').value) || 0;
+  const cat = document.getElementById('nf_cat').value;
+  const newId = 1000 + customFoods.length;
+  const food = {id: newId, name, emoji, cal, prot, carb, fat, cat, custom: true};
+  customFoods.push(food);
+  FOODS.push(food);
+  ['nf_name','nf_cal','nf_prot','nf_carb','nf_fat'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('nf_emoji').value = '';
+  buildCategories();
+  renderCustomFoodList();
+  alert('✅ Alimentul "' + name + '" a fost adăugat în listă!');
+}
+
+function deleteCustomFood(idx) {
+  const food = customFoods[idx];
+  const fi = FOODS.findIndex(f => f.id === food.id);
+  if (fi !== -1) FOODS.splice(fi, 1);
+  customFoods.splice(idx, 1);
+  buildCategories();
+  renderCustomFoodList();
+  filterFoods();
+}
+
+function renderCustomFoodList() {
+  const el = document.getElementById('customFoodList');
+  if (!customFoods.length) {
+    el.innerHTML = '<div style="text-align:center;padding:1rem;color:var(--text3);font-size:0.8rem;">Niciun aliment custom salvat încă.</div>';
+    return;
+  }
+  el.innerHTML = '<div style="font-size:0.7rem;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:7px;">Alimentele tale salvate</div>'
+    + customFoods.map((f, i) => `
+    <div style="display:flex;align-items:center;gap:9px;background:var(--bg);border:1px solid var(--border);border-radius:9px;padding:8px 11px;margin-bottom:5px;">
+      <span style="font-size:1.2rem">${f.emoji}</span>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:0.8rem;font-weight:500;color:var(--text)">${f.name}</div>
+        <div style="font-size:0.68rem;color:var(--text3)">${f.cal} kcal · P:${f.prot}g C:${f.carb}g G:${f.fat}g</div>
+      </div>
+      <button onclick="deleteCustomFood(${i})" style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:14px;padding:2px 5px;border-radius:4px;" title="Șterge">✕</button>
+    </div>
+  `).join('');
+}
+
+function switchTab(tab, btn) {
+  ['search','manual','recent','newfood'].forEach(t=>{
+    document.getElementById('tab-'+t).style.display = t===tab?'block':'none';
+  });
+  if(tab==='newfood') renderCustomFoodList();
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  if(tab==='recent') renderRecent();
+}
+
+function renderRecent() {
+  const el = document.getElementById('recentList');
+  if(!dailyLog.length){el.innerHTML='<div class="log-empty">🕐<br>Niciun aliment adăugat încă</div>';return;}
+  const seen = new Set();
+  const uniq = dailyLog.filter(item=>{const k=item.name;if(seen.has(k))return false;seen.add(k);return true;}).slice(0,8);
+  el.innerHTML = uniq.map(item=>`
+    <div class="food-item" style="flex-direction:row;align-items:center;gap:8px;margin-bottom:6px"
+      onclick="openModalDirect('${item.name}',${item.cal},${item.prot},${item.carb},${item.fat},'${item.emoji}')">
+      <span style="font-size:1.2rem">${item.emoji}</span>
+      <div style="flex:1"><div class="food-item-name">${item.name}</div><div class="food-item-cal">${item.logCal} kcal · ${item.qty}g</div></div>
+      <span style="font-size:0.75rem;color:var(--text3)">+ adaugă</span>
+    </div>
+  `).join('');
+}
+
+function openModal(id) {
+  const food = FOODS.find(f=>f.id===id);
+  if(!food) return;
+  currentFood = food;
+  document.getElementById('modalFoodName').textContent = food.emoji+' '+food.name;
+  document.getElementById('modalFoodCal').textContent = food.cal+' kcal / 100g';
+  document.getElementById('qtyInput').value = 100;
+  updateQtyPreview();
+  document.getElementById('qtyModal').classList.add('open');
+  document.body.classList.add('modal-open');
+}
+
+function openModalDirect(name,cal,prot,carb,fat,emoji) {
+  currentFood = {id:null,name,cal,prot,carb,fat,emoji:emoji||'🍽️'};
+  document.getElementById('modalFoodName').textContent = (emoji||'🍽️')+' '+name;
+  document.getElementById('modalFoodCal').textContent = cal+' kcal / 100g';
+  document.getElementById('qtyInput').value = 100;
+  updateQtyPreview();
+  document.getElementById('qtyModal').classList.add('open');
+  document.body.classList.add('modal-open');
+}
+
+function closeModal() {
+  document.getElementById('qtyModal').classList.remove('open');
+  document.body.classList.remove('modal-open');
+  currentFood = null;
+}
+
+function updateQtyPreview() {
+  if(!currentFood) return;
+  const qty = parseFloat(document.getElementById('qtyInput').value)||0;
+  document.getElementById('qtyCalPreview').textContent = Math.round(currentFood.cal*qty/100)+' kcal';
+}
+
+function confirmAdd() {
+  if(!currentFood) return;
+  const qty = parseFloat(document.getElementById('qtyInput').value)||100;
+  const meal = document.getElementById('modalMeal').value;
+  dailyLog.push({
+    id:currentFood.id, name:currentFood.name, emoji:currentFood.emoji||'🍽️',
+    qty, meal,
+    logCal:Math.round(currentFood.cal*qty/100),
+    logProt:Math.round(currentFood.prot*qty/100*10)/10,
+    logCarb:Math.round(currentFood.carb*qty/100*10)/10,
+    logFat:Math.round(currentFood.fat*qty/100*10)/10,
+    cal:currentFood.cal, prot:currentFood.prot, carb:currentFood.carb, fat:currentFood.fat,
+  });
+  closeModal();
+  renderLog();
+  updateSummary();
+}
+
+function addManual() {
+  const name = document.getElementById('m_name').value.trim();
+  const cal = parseFloat(document.getElementById('m_cal').value)||0;
+  const qty = parseFloat(document.getElementById('m_qty').value)||100;
+  const prot = parseFloat(document.getElementById('m_prot').value)||0;
+  const carb = parseFloat(document.getElementById('m_carb').value)||0;
+  const fat = parseFloat(document.getElementById('m_fat').value)||0;
+  const meal = document.getElementById('m_meal').value;
+  if(!name||!cal){alert('Completează cel puțin numele și caloriile!');return;}
+  dailyLog.push({id:null,name,emoji:'🍽️',qty,meal,logCal:Math.round(cal),logProt:prot,logCarb:carb,logFat:fat,cal,prot,carb,fat});
+  ['m_name','m_cal','m_qty','m_prot','m_carb','m_fat'].forEach(id=>document.getElementById(id).value='');
+  renderLog();
+  updateSummary();
+}
+
+function deleteItem(idx) {
+  dailyLog.splice(idx,1);
+  renderLog();
+  updateSummary();
+}
+
+function clearLog() {
+  if(!dailyLog.length) return;
+  if(confirm('Ștergi toate înregistrările de azi?')){dailyLog=[];renderLog();updateSummary();}
+}
+
+function renderLog() {
+  const c = document.getElementById('logContainer');
+  if(!dailyLog.length){c.innerHTML='<div class="log-empty">📋<br>Nicio masă înregistrată.<br>Adaugă primul tău aliment!</div>';return;}
+  const meals=['Mic dejun','Prânz','Cină','Gustare'];
+  let html='';
+  meals.forEach(meal=>{
+    const items = dailyLog.map((item,i)=>({...item,idx:i})).filter(item=>item.meal===meal);
+    if(!items.length) return;
+    const mealCal = items.reduce((s,i)=>s+i.logCal,0);
+    html+=`<div class="meal-hdr">${meal} <span style="font-weight:400;text-transform:none;letter-spacing:0">${mealCal} kcal</span></div>`;
+    html+=items.map(item=>`
+      <div class="log-item">
+        <span class="log-emoji">${item.emoji}</span>
+        <div class="log-info">
+          <div class="log-name">${item.name}</div>
+          <div class="log-detail">${item.qty}g · P:${item.logProt}g C:${item.logCarb}g G:${item.logFat}g</div>
+        </div>
+        <span class="log-cal">${item.logCal} kcal</span>
+        <button class="log-del" onclick="deleteItem(${item.idx})">✕</button>
+      </div>
+    `).join('');
+  });
+  c.innerHTML='<div class="log-list">'+html+'</div>';
+}
+
+function updateSummary() {
+  const totCal=dailyLog.reduce((s,i)=>s+i.logCal,0);
+  const totProt=Math.round(dailyLog.reduce((s,i)=>s+i.logProt,0));
+  const totCarb=Math.round(dailyLog.reduce((s,i)=>s+i.logCarb,0));
+  const totFat=Math.round(dailyLog.reduce((s,i)=>s+i.logFat,0));
+  document.getElementById('totalCal').textContent=totCal;
+  document.getElementById('totalProt').textContent=totProt;
+  document.getElementById('totalCarb').textContent=totCarb;
+  document.getElementById('totalFat').textContent=totFat;
+  const rem=dailyGoal-totCal;
+  const remEl=document.getElementById('remainingCal');
+  if(rem>=0){remEl.innerHTML=rem+' kcal rămase din <span id="goalDisplay">'+dailyGoal+'</span> kcal';remEl.className='ring-remaining good';}
+  else{remEl.innerHTML=Math.abs(rem)+' kcal depășite din <span id="goalDisplay">'+dailyGoal+'</span> kcal';remEl.className='ring-remaining over';}
+  const pct=Math.min(totCal/dailyGoal,1);
+  const circ=213.6;
+  document.getElementById('ringFill').style.strokeDashoffset=circ*(1-pct);
+  document.getElementById('ringFill').style.stroke=pct>1?'#E24B4A':pct>0.9?'#BA7517':'#D85A30';
+  const pt=dailyGoal*0.3/4, ct=dailyGoal*0.45/4, ft=dailyGoal*0.25/9;
+  document.getElementById('protBar').style.width=Math.min(totProt/pt*100,100)+'%';
+  document.getElementById('carbBar').style.width=Math.min(totCarb/ct*100,100)+'%';
+  document.getElementById('fatBar').style.width=Math.min(totFat/ft*100,100)+'%';
+}
+
+
+function calcGoal() {
+  const age = parseFloat(document.getElementById('g_age').value);
+  const sex = document.getElementById('g_sex').value;
+  const weight = parseFloat(document.getElementById('g_weight').value);
+  const height = parseFloat(document.getElementById('g_height').value);
+  const activity = parseFloat(document.getElementById('g_activity').value);
+  const goalAdj = parseInt(document.getElementById('g_goal').value, 10);
+
+  if (!age || !weight || !height) return;
+
+  let bmr = 0;
+
+  if (sex === 'm') {
+    bmr = 88.362 + (13.397 * weight) + (4.799 * height) - (5.677 * age);
+  } else {
+    bmr = 447.593 + (9.247 * weight) + (3.098 * height) - (4.330 * age);
+  }
+
+  const tdee = Math.round(bmr * activity);
+  const target = tdee + goalAdj;
+
+  dailyGoal = target;
+
+  const gd = document.getElementById('goalDisplay'); if(gd) gd.textContent = target;
+
+  document.getElementById('bmrVal').textContent =
+    target + ' kcal / zi';
+
+  document.getElementById('bmrSub').textContent =
+    'BMR: ' + Math.round(bmr) +
+    ' · TDEE: ' + tdee + ' kcal';
+
+  document.getElementById('bmrResult').classList.add('show');
+
+  updateSummary();
+}
+
+
+function renderWater() {
+  document.getElementById('waterTrack').innerHTML=Array.from({length:8},(_,i)=>
+    `<div class="wc${i<waterCount?' filled':''}" onclick="toggleWater(${i})"></div>`
+  ).join('');
+  document.getElementById('waterLabel').textContent=waterCount+' / 8 pahare ('+waterCount*250+' ml)';
+}
+
+function toggleWater(idx) {
+  waterCount = waterCount===idx+1 ? idx : idx+1;
+  renderWater();
+}
+
+document.getElementById('qtyModal').addEventListener('click',function(e){if(e.target===this)closeModal();});
+
+// LIVE UPDATE OBIECTIV
+['g_age','g_weight','g_height'].forEach(id=>{
+  document.getElementById(id).addEventListener('input', calcGoal);
+});
+
+['g_activity','g_goal','g_sex'].forEach(id=>{
+  document.getElementById(id).addEventListener('change', calcGoal);
+});
+
+</script>
+</body>
+</html>
